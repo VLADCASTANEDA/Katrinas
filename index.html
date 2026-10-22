@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>Crono MTB v5</title>
+<style>
+:root{--bg:#0b1220;--panel:#151f30;--panel2:#202d42;--text:#f8fafc;--muted:#aab7ca;--lime:#d9ff00;--red:#ff5b63;--line:#334155}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:18px 16px 12px;background:#111827;position:sticky;top:0;z-index:2;border-bottom:1px solid var(--line)}
+.brand{font-weight:900;font-size:22px;letter-spacing:1px}.sub{font-size:11px;color:var(--muted);letter-spacing:1.5px}
+main{padding:14px;max-width:760px;margin:auto;padding-bottom:45px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}
+h2{font-size:16px;margin:0 0 12px}.timer{text-align:center;font-size:clamp(32px,9vw,54px);font-weight:850;font-variant-numeric:tabular-nums;letter-spacing:1px;margin:8px 0}
+.status{text-align:center;color:var(--muted);font-size:12px;margin-bottom:12px}
+button,.filebtn{border:0;border-radius:12px;padding:13px 14px;font-size:15px;font-weight:750;cursor:pointer;min-height:46px}
+.primary{background:var(--lime);color:#111827}.secondary{background:var(--panel2);color:var(--text);border:1px solid #475569}.danger{background:#4a2029;color:#ffe4e6;border:1px solid #85404a}
+button:disabled{opacity:.45}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+input,select{width:100%;padding:12px;border-radius:10px;background:#0b1220;border:1px solid #475569;color:var(--text);font-size:16px;min-height:46px}
+label{display:block;color:var(--muted);font-size:12px;margin:9px 0 5px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.full{grid-column:1/-1}.numbers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.numBtn{background:var(--lime);color:#111827;min-height:66px;font-size:22px}
+.small{font-size:12px;color:var(--muted)}.numbers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.numBtn{background:var(--lime);color:#111827;min-height:58px;font-size:20px}.quicktitle{margin:12px 0 8px;font-size:12px;color:var(--muted)}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tabs{display:flex;gap:7px;overflow:auto;margin:12px 0}.tab{white-space:nowrap;background:var(--panel2);color:var(--text);padding:10px 12px;border-radius:10px}.tab.active{background:var(--lime);color:#111827}
+.hidden{display:none!important}.list{display:flex;flex-direction:column;gap:7px}.person{background:#0b1220;border:1px solid var(--line);border-radius:11px;padding:10px;display:grid;grid-template-columns:54px 1fr auto;gap:9px;align-items:center}.bib{font-size:19px;font-weight:900}.person small{display:block;color:var(--muted);font-size:11px}.time{font-weight:800;font-variant-numeric:tabular-nums}.mini{padding:7px 9px;min-height:34px;font-size:12px}.pill{display:inline-block;border:1px solid #475569;color:var(--muted);border-radius:99px;padding:3px 7px;font-size:11px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:9px 5px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-size:11px}
+.note{background:#1c2939;padding:10px;border-radius:10px;color:var(--muted);font-size:12px;line-height:1.45}
+</style>
+</head>
+<body>
+<header><div class="brand">CRONO <span style="color:var(--lime)">MTB</span></div><div class="sub">CRONOMETRAJE CICLISTA · VERSIÓN 5 LOCAL</div></header>
+<main>
+<section class="panel">
+ <div class="row"><h2 id="eventTitle">Evento MTB</h2><span class="pill" id="raceState">PREPARADO</span></div>
+ <label for="eventName">Nombre del evento</label><input id="eventName" placeholder="Ej. Katrinas MTB 2026">
+ <div class="timer" id="clock">00:00:00.00</div><div class="status" id="clockStatus">Listo para iniciar la salida masiva</div>
+ <div class="actions"><button class="primary" id="startBtn">▶ INICIAR SALIDA</button><button class="secondary" id="finishBtn" disabled>■ CERRAR CARRERA</button></div><button class="secondary" id="wakeBtn" style="width:100%;margin-top:8px">MANTENER PANTALLA ENCENDIDA</button><div class="small" id="wakeStatus" style="margin-top:5px">Actívalo antes de iniciar, si el navegador lo permite.</div>
+ <div class="small" style="margin-top:9px">Salida masiva. Mantén esta pestaña abierta durante el evento y exporta un respaldo antes de la salida.</div>
+</section>
+<div class="tabs">
+ <button class="tab active" data-tab="arrivals">Llegadas</button><button class="tab" data-tab="participants">Participantes</button><button class="tab" data-tab="results">Resultados</button><button class="tab" data-tab="backup">Importar / Exportar</button>
+</div>
+<section id="arrivals" class="view">
+ <div class="panel">
+  <h2>Registrar llegada</h2>
+  <label for="searchBib">Número de dorsal</label><input id="searchBib" inputmode="numeric" autocomplete="off" placeholder="Escribe o toca un número"><div class="numbers" id="keypad" style="margin-top:10px"><button class="numBtn" data-key="1">1</button><button class="numBtn" data-key="2">2</button><button class="numBtn" data-key="3">3</button><button class="numBtn" data-key="4">4</button><button class="numBtn" data-key="5">5</button><button class="numBtn" data-key="6">6</button><button class="numBtn" data-key="7">7</button><button class="numBtn" data-key="8">8</button><button class="numBtn" data-key="9">9</button><button class="secondary" data-key="clear">BORRAR</button><button class="numBtn" data-key="0">0</button><button class="secondary" data-key="back">⌫</button></div>
+  <button class="primary" id="recordBtn" style="width:100%;margin-top:8px" disabled>REGISTRAR LLEGADA</button>
+  <div class="small" id="recordHint" style="margin-top:7px">Primero inicia la carrera y carga participantes.</div>
+ <div class="quicktitle">BOTONES RÁPIDOS · DORSALES PENDIENTES</div><div class="numbers" id="quickButtons"><div class="small">Agrega participantes para ver dorsales.</div></div></div>
+ <div class="panel"><div class="row"><h2>Últimas llegadas</h2><span class="pill" id="arrivalCount">0 registradas</span></div><div class="list" id="recentList"><div class="small">Aún no hay llegadas.</div></div></div>
+</section>
+<section id="participants" class="view hidden">
+ <div class="panel">
+  <h2>Agregar participante</h2>
+  <div class="formgrid">
+   <div><label>Dorsal *</label><input id="pBib" inputmode="numeric" placeholder="101"></div>
+   <div><label>Nombre *</label><input id="pName" placeholder="Nombre completo"></div>
+   <div><label>Categoría</label><input id="pCat" placeholder="Ej. 30-39"></div>
+   <div><label>Rama</label><select id="pSex"><option>Varonil</option><option>Femenil</option><option>Mixta</option></select></div>
+   <div class="full"><label>Distancia</label><input id="pDist" placeholder="Ej. 45 km Competencia"></div>
+  </div>
+  <button class="primary" id="addBtn" style="width:100%;margin-top:12px">GUARDAR PARTICIPANTE</button>
+ </div>
+ <div class="panel"><div class="row"><h2>Base de participantes</h2><span class="pill" id="participantCount">0</span></div><label for="participantSearch">Filtrar por dorsal o nombre</label><input id="participantSearch" placeholder="Buscar..."><div class="list" id="participantList" style="margin-top:10px"></div></div>
+</section>
+<section id="results" class="view hidden">
+ <div class="panel"><div class="row"><h2>Clasificación</h2><button class="secondary mini" id="exportResultsBtn">Exportar CSV</button></div>
+ <div class="formgrid"><div><label>Vista</label><select id="resultMode"><option value="general">General</option><option value="category">Por categoría</option><option value="sex">Por rama</option><option value="distance">Por distancia</option></select></div><div><label>Filtro</label><input id="resultFilter" placeholder="Categoría, rama o distancia"></div></div>
+ <div style="overflow:auto;margin-top:10px"><table><thead><tr><th>Lugar</th><th>Dorsal</th><th>Participante</th><th>Tiempo</th><th>Categoría</th></tr></thead><tbody id="resultsBody"><tr><td colspan="5">Sin resultados todavía.</td></tr></tbody></table></div></div>
+</section>
+<section id="backup" class="view hidden">
+ <div class="panel"><h2>Importar participantes</h2><p class="small">Selecciona un archivo CSV guardado desde Excel. Encabezados recomendados: dorsal,nombre,categoria,rama,distancia. También puedes capturar manualmente.</p><input type="file" id="csvFile" accept=".csv,text/csv"><button class="primary" id="importBtn" style="width:100%;margin-top:9px">IMPORTAR CSV</button><div id="importMsg" class="small" style="margin-top:8px"></div></div>
+ <div class="panel"><h2>Auditoría de llegadas</h2><p class="small">Consulta el historial de correcciones guardadas. Las correcciones se conservan en el respaldo JSON.</p><div class="actions"><button id="auditBtn" class="secondary">Actualizar auditoría</button><button id="exportAuditBtn" class="secondary">Exportar auditoría CSV</button></div><div id="auditSummary" class="note" style="margin-top:10px">Sin correcciones registradas.</div><div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>Dorsal</th><th>Participante</th><th>Tiempo anterior</th><th>Tiempo nuevo</th><th>Fecha</th><th>Motivo</th></tr></thead><tbody id="auditBody"><tr><td colspan="6">Sin correcciones registradas.</td></tr></tbody></table></div></div><div class="panel"><h2>Respaldo de datos</h2><p class="small">Exporta la base y las llegadas para guardarlas fuera del teléfono. La información de esta versión queda guardada en el almacenamiento local del navegador.</p><div class="note" style="margin-bottom:10px">Las correcciones guardan tiempo anterior, tiempo nuevo, fecha y motivo en el respaldo JSON. El CSV de resultados muestra los tiempos vigentes.</div><div class="note" style="margin-bottom:10px">Recomendación: descarga el respaldo completo antes de iniciar y al terminar la carrera.</div><div class="actions"><button class="secondary" id="exportPeopleBtn">Participantes CSV</button><button class="secondary" id="exportAllBtn">Respaldo completo</button></div><button class="danger" id="newRaceBtn" style="width:100%;margin-top:10px">NUEVA CARRERA (BORRAR TIEMPOS)</button><div class="note" style="margin-top:10px">Importante: esta versión de prueba guarda los datos en este navegador y dispositivo. No borres los datos del navegador sin exportar un respaldo.</div></div>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let db={eventName:"Evento MTB",startedAt:null,ended:false,participants:[],arrivals:[]};
+let tick=null; let wakeLock=null;
+function load(){try{const x=JSON.parse(localStorage.getItem('cronomtb_v1'));if(x)db={...db,...x}}catch(e){}}
+function save(){try{localStorage.setItem('cronomtb_v1',JSON.stringify(db));}catch(e){alert('No se pudo guardar en el navegador. Exporta un respaldo y libera espacio.');}render()}
+function fmt(ms){if(!Number.isFinite(ms)||ms<0)ms=0;let cs=Math.floor(ms/10)%100,s=Math.floor(ms/1000)%60,m=Math.floor(ms/60000)%60,h=Math.floor(ms/3600000);return [h,m,s].map(v=>String(v).padStart(2,'0')).join(':')+'.'+String(cs).padStart(2,'0')}
+function elapsed(){return db.startedAt?Math.max(0,Date.now()-db.startedAt):0}
+function participant(bib){return db.participants.find(p=>p.bib===String(bib).trim())}
+function sorted(){return [...db.arrivals].sort((a,b)=>a.ms-b.ms||a.order-b.order)}
+function render(){
+ $('eventName').value=db.eventName||'';$('eventTitle').textContent=db.eventName||'Evento MTB';
+ $('raceState').textContent=!db.startedAt?'PREPARADO':db.ended?'CERRADA':'EN VIVO';
+ $('clock').textContent=fmt(elapsed());$('clockStatus').textContent=!db.startedAt?'Listo para iniciar la salida masiva':db.ended?'Carrera cerrada':'Carrera en curso · no cierres esta pestaña';
+ $('startBtn').disabled=!!db.startedAt;$('finishBtn').disabled=!db.startedAt||db.ended;
+ $('recordBtn').disabled=!db.startedAt||db.ended||!participant($('searchBib').value)||db.arrivals.some(a=>a.bib===String($('searchBib').value).trim());
+ $('recordHint').textContent=!db.startedAt?'Primero inicia la carrera.':db.ended?'La carrera está cerrada.':!$('searchBib').value?'Escribe un dorsal.':!participant($('searchBib').value)?'Ese dorsal no está en la base de datos.':db.arrivals.some(a=>a.bib===String($('searchBib').value).trim())?'Este dorsal ya tiene llegada registrada.':'Listo para registrar '+participant($('searchBib').value).name+'.';
+ $('arrivalCount').textContent=db.arrivals.length+' registradas';$('participantCount').textContent=db.participants.length;
+ const pending=db.participants.filter(p=>!db.arrivals.some(a=>a.bib===p.bib)).sort((a,b)=>a.bib.localeCompare(b.bib,undefined,{numeric:true})).slice(0,12);$('quickButtons').innerHTML=pending.length?pending.map(p=>`<button class="numBtn" data-quick="${esc(p.bib)}">${esc(p.bib)}</button>`).join(''):'<div class="small">No hay dorsales pendientes.</div>';
+ const rec=sorted().slice(-8).reverse();$('recentList').innerHTML=rec.length?rec.map(a=>`<div class="person"><div class="bib">${esc(a.bib)}</div><div>${esc(a.name)}<small>${esc(a.category)} · llegada #${a.order}${a.history&&a.history.length?' · CORREGIDA ('+a.history.length+')':''}</small></div><div><div class="time">${fmt(a.ms)}</div><button class="secondary mini" data-correct="${esc(a.bib)}">Corregir</button> <button class="secondary mini" data-undo="${esc(a.bib)}">Deshacer</button></div></div>`).join(''):'<div class="small">Aún no hay llegadas.</div>';
+ const q=$('participantSearch').value.toLowerCase();let ps=db.participants.filter(p=>(p.bib+' '+p.name+' '+p.category).toLowerCase().includes(q)).slice(0,150);
+ $('participantList').innerHTML=ps.length?ps.map(p=>`<div class="person"><div class="bib">${esc(p.bib)}</div><div>${esc(p.name)}<small>${esc(p.category)} · ${esc(p.sex)} · ${esc(p.distance)}</small></div><button class="danger mini" data-del="${esc(p.bib)}">Eliminar</button></div>`).join(''):'<div class="small">No hay participantes cargados.</div>';
+ renderResults();
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function record(){let bib=$('searchBib').value.trim(),p=participant(bib);if(!p||!db.startedAt||db.ended||db.arrivals.some(a=>a.bib===bib))return;db.arrivals.push({bib,name:p.name,category:p.category,sex:p.sex,distance:p.distance,ms:Date.now()-db.startedAt,order:db.arrivals.length+1,at:new Date().toISOString(),history:[]});$('searchBib').value='';save();$('searchBib').focus()}
+function parseRaceTime(value){let m=String(value).trim().match(/^(\d{1,3}):(\d{2}):(\d{2})(?:\.(\d{1,2}))?$/);if(!m)return null;let h=+m[1],min=+m[2],sec=+m[3],cs=+(m[4]||'0'.padStart(2,'0'));if(min>59||sec>59||cs>99)return null;return ((h*3600+min*60+sec)*1000)+cs*10}
+function correctArrival(bib){if(db.ended&&!confirm('La carrera está cerrada. ¿Deseas abrir una corrección excepcional? Quedará registrada en auditoría.'))return;let a=db.arrivals.find(x=>x.bib===bib);if(!a)return;let oldMs=a.ms,typed=prompt('Tiempo correcto para dorsal '+bib+' (formato HH:MM:SS.cc). Tiempo actual: '+fmt(oldMs),fmt(oldMs));if(typed===null)return;let newMs=parseRaceTime(typed);if(newMs===null)return alert('Formato inválido. Usa HH:MM:SS.cc, por ejemplo 00:42:15.37');if(newMs===oldMs)return;let reason=prompt('Motivo de la corrección (obligatorio):','Corrección manual de tiempo');if(reason===null)return;if(!reason.trim())return alert('Escribe un motivo para dejar registro de la corrección.');if(!Array.isArray(a.history))a.history=[];a.history.push({previousMs:oldMs,newMs,at:new Date().toISOString(),reason:reason.trim()});a.ms=newMs;a.correctedAt=new Date().toISOString();a.correctionReason=reason.trim();save();alert('Tiempo corregido. El tiempo anterior y el motivo quedaron en el historial del respaldo JSON.')}
+$('startBtn').onclick=()=>{if(!db.participants.length)return alert('Primero carga o captura los participantes.');if(!confirm('¿Iniciar la salida masiva de '+db.participants.length+' participantes ahora? Verifica que la lista esté completa. El cronómetro no se podrá reiniciar sin crear una nueva carrera.'))return;db.startedAt=Date.now();db.ended=false;save();if(tick)clearInterval(tick);tick=setInterval(()=>{$('clock').textContent=fmt(elapsed())},50)};
+$('finishBtn').onclick=()=>{if(confirm('¿Cerrar la carrera? Ya no se podrán registrar nuevas llegadas.')){db.ended=true;save();if(tick)clearInterval(tick)}};
+$('eventName').onchange=()=>{db.eventName=$('eventName').value.trim()||'Evento MTB';save()};
+$('searchBib').oninput=render;$('recordBtn').onclick=record;$('searchBib').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();record()}};document.querySelectorAll('[data-key]').forEach(b=>b.onclick=()=>{let k=b.dataset.key,v=$('searchBib').value;if(k==='clear')v='';else if(k==='back')v=v.slice(0,-1);else v+=k;$('searchBib').value=v;render()});$('wakeBtn').onclick=async()=>{try{if(!('wakeLock' in navigator)){$('wakeStatus').textContent='Este navegador no ofrece bloqueo de pantalla. Ajusta el apagado de pantalla en Android.';return;}wakeLock=await navigator.wakeLock.request('screen');$('wakeStatus').textContent='Pantalla activa mientras esta página permanezca visible.';wakeLock.addEventListener('release',()=>{$('wakeStatus').textContent='Bloqueo de pantalla liberado; vuelve a activarlo si es necesario.'})}catch(e){$('wakeStatus').textContent='No se pudo activar. Mantén el teléfono conectado y ajusta el tiempo de apagado de pantalla en Android.'}};
+$('addBtn').onclick=()=>{let bib=$('pBib').value.trim(),name=$('pName').value.trim();if(!bib||!name)return alert('Dorsal y nombre son obligatorios.');if(participant(bib))return alert('Ese dorsal ya existe.');db.participants.push({bib,name,category:$('pCat').value.trim()||'Sin categoría',sex:$('pSex').value,distance:$('pDist').value.trim()||'Sin distancia'});['pBib','pName','pCat','pDist'].forEach(id=>$(id).value='');save()};
+$('participantSearch').oninput=render;
+document.addEventListener('click',e=>{let q=e.target.dataset.quick;if(q!==undefined){$('searchBib').value=q;render();record();return}let c=e.target.dataset.correct,u=e.target.dataset.undo,d=e.target.dataset.del;if(c){correctArrival(c)}if(u){if(confirm('¿Eliminar la llegada del dorsal '+u+'? Se quitará también de la clasificación.')){db.arrivals=db.arrivals.filter(a=>a.bib!==u);save()}}if(d){if(db.arrivals.some(a=>a.bib===d))return alert('No se puede eliminar un participante que ya tiene llegada. Deshaz primero esa llegada.');if(confirm('¿Eliminar dorsal '+d+'?')){db.participants=db.participants.filter(p=>p.bib!==d);save()}}});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.view').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.tab));if(b.dataset.tab==='results')renderResults()});
+function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
+function download(name,content,type='text/csv;charset=utf-8'){let payload='\ufeff'+content;if(window.AndroidBridge&&window.AndroidBridge.saveFile){let bytes=new TextEncoder().encode(payload),bin='';for(let i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);window.AndroidBridge.saveFile(name,btoa(bin),type);return}let blob=new Blob([payload],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function peopleCsv(){return [['dorsal','nombre','categoria','rama','distancia'],...db.participants.map(p=>[p.bib,p.name,p.category,p.sex,p.distance])].map(r=>r.map(csvCell).join(',')).join('\r\n')}
+function arrivalCsv(){return [['lugar_general','dorsal','nombre','tiempo','milisegundos','categoria','rama','distancia','hora_registro','correcciones','motivo_ultima_correccion'],...sorted().map((a,i)=>[i+1,a.bib,a.name,fmt(a.ms),a.ms,a.category,a.sex,a.distance,a.at,(a.history||[]).length,a.correctionReason||''])].map(r=>r.map(csvCell).join(',')).join('\r\n')}
+$('exportPeopleBtn').onclick=()=>download('cronomtb_participantes.csv',peopleCsv());
+$('exportResultsBtn').onclick=()=>download('cronomtb_resultados.csv',arrivalCsv());
+$('exportAllBtn').onclick=()=>download('cronomtb_respaldo.json',JSON.stringify(db,null,2),'application/json');
+$('newRaceBtn').onclick=()=>{if(confirm('¿Borrar TODOS los tiempos y preparar una nueva carrera? Se conservarán los participantes. Asegúrate de haber exportado un respaldo.')){db.startedAt=null;db.ended=false;db.arrivals=[];save();if(tick)clearInterval(tick);tick=null}};
+function parseCSV(text){let rows=[],row=[],v='',q=false;for(let i=0;i<text.length;i++){let c=text[i];if(c==='"'&&q&&text[i+1]==='"'){v+='"';i++}else if(c==='"')q=!q;else if(c===','&&!q){row.push(v);v=''}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&text[i+1]==='\n')i++;row.push(v);if(row.some(x=>x.trim()))rows.push(row);row=[];v=''}else v+=c}row.push(v);if(row.some(x=>x.trim()))rows.push(row);return rows}
+$('importBtn').onclick=async()=>{let f=$('csvFile').files[0];if(!f)return alert('Selecciona un archivo CSV.');let rows=parseCSV(await f.text());if(rows.length<2)return alert('El archivo no tiene filas de datos.');let heads=rows.shift().map(x=>x.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''));const ix=(...names)=>heads.findIndex(h=>names.includes(h));let bi=ix('dorsal','numero','numero de corredor','bib','numero participante'),ni=ix('nombre','participante','name'),ci=ix('categoria','category'),si=ix('rama','sexo','sex'),di=ix('distancia','modalidad','distance');if(bi<0||ni<0)return alert('No se encontraron columnas dorsal y nombre. Revisa los encabezados.');let added=0,dupes=0;for(let r of rows){let bib=(r[bi]||'').trim(),name=(r[ni]||'').trim();if(!bib||!name)continue;if(participant(bib)){dupes++;continue}db.participants.push({bib,name,category:ci>=0?(r[ci]||'Sin categoría'):'Sin categoría',sex:si>=0?(r[si]||'Varonil'):'Varonil',distance:di>=0?(r[di]||'Sin distancia'):'Sin distancia'});added++}save();$('importMsg').textContent=`Importados: ${added}. Dorsales duplicados omitidos: ${dupes}.`};
+function auditRows(){let rows=[];db.arrivals.forEach(a=>(a.history||[]).forEach(h=>rows.push({bib:a.bib,name:a.name,previousMs:h.previousMs,newMs:h.newMs,at:h.at,reason:h.reason})));return rows.sort((a,b)=>String(b.at).localeCompare(String(a.at)))}
+function renderAudit(){let rows=auditRows();$('auditSummary').textContent=rows.length?('Correcciones registradas: '+rows.length+' · Participantes con correcciones: '+new Set(rows.map(r=>r.bib)).size):'Sin correcciones registradas.';$('auditBody').innerHTML=rows.length?rows.map(r=>`<tr><td><b>${esc(r.bib)}</b></td><td>${esc(r.name)}</td><td>${fmt(r.previousMs)}</td><td>${fmt(r.newMs)}</td><td>${esc(new Date(r.at).toLocaleString())}</td><td>${esc(r.reason)}</td></tr>`).join(''):'<tr><td colspan="6">Sin correcciones registradas.</td></tr>'}
+function auditCsv(){return [['dorsal','participante','tiempo_anterior','tiempo_nuevo','fecha_correccion','motivo'],...auditRows().map(r=>[r.bib,r.name,fmt(r.previousMs),fmt(r.newMs),r.at,r.reason])].map(r=>r.map(csvCell).join(',')).join('\r\n')}
+function renderResults(){
+ let mode=$('resultMode').value,filter=$('resultFilter').value.trim().toLowerCase(),a=sorted();
+ if(mode==='category')a=a.filter(x=>!filter||x.category.toLowerCase().includes(filter));
+ if(mode==='sex')a=a.filter(x=>!filter||x.sex.toLowerCase().includes(filter));
+ if(mode==='distance')a=a.filter(x=>!filter||x.distance.toLowerCase().includes(filter));
+ const groupKey=x=>mode==='category'?x.category:mode==='sex'?x.sex:mode==='distance'?x.distance:'GENERAL';
+ if(mode!=='general')a.sort((x,y)=>groupKey(x).localeCompare(groupKey(y),'es',{sensitivity:'base'})||x.ms-y.ms||x.order-y.order);
+ const counts={};
+ $('resultsBody').innerHTML=a.length?a.map(x=>{
+   const g=groupKey(x);counts[g]=(counts[g]||0)+1;const rank=counts[g];
+   return `<tr><td>${rank}</td><td><b>${esc(x.bib)}</b></td><td>${esc(x.name)}<br><span class="small">${esc(x.sex)} · ${esc(x.distance)}</span></td><td>${fmt(x.ms)}</td><td>${esc(x.category)}</td></tr>`;
+ }).join(''):'<tr><td colspan="5">Sin resultados para este filtro.</td></tr>';
+}
+$('resultMode').onchange=renderResults;$('resultFilter').oninput=renderResults;
+$('auditBtn').onclick=renderAudit;$('exportAuditBtn').onclick=()=>download('crono_mtb_auditoria.csv',auditCsv(),'text/csv;charset=utf-8');load();render();if(db.startedAt&&!db.ended){tick=setInterval(()=>{$('clock').textContent=fmt(elapsed())},50)}
+</script>
+</body></html>
